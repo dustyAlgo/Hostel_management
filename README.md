@@ -10,9 +10,15 @@ A simple Hostel Management System built with Python Tkinter and plain text file 
 - `Images/`: Screenshots used in this README
 - Text data files created at runtime (see below)
 
-### Run
-1. Ensure you have Python 3 installed.
-2. Create the following empty text files in the project root before first run (the app expects them to exist):
+### Quick Setup & Run
+1. **Automatic Setup** (Recommended):
+   ```bash
+   python setup_files.py
+   ```
+   This creates all required data files automatically.
+
+2. **Manual Setup** (Alternative):
+   Create these empty text files in the project root:
    - `room_info_boys.txt`
    - `room_info_girls.txt`
    - `room_info_others.txt`
@@ -20,13 +26,14 @@ A simple Hostel Management System built with Python Tkinter and plain text file 
    - `inouttime.txt`
    - `visitor_info.txt`
    - `leave_applications.txt`
-3. Start the app:
+
+3. **Start the app**:
    - Windows: Right‑click `Hostel Management.py` → Open with Python
    - Or from terminal: `python "Hostel Management.py"`
 
 ### Default Login
 - Username: `mrityunjay`
-- Password: `312345670`
+- Password: `12345670`
 
 These values are hardcoded in `Hostel Management.py` inside the `login()` function.
 
@@ -67,18 +74,16 @@ Note: The app opens room files in read mode in several places; ensure the files 
 - If you see “No Rooms Available,” add rooms for the selected gender
 
 ### Screenshots
-![Login](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/Login.png)
+![Login](Images/login_info.png)
 
-![Add Student](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/addStudents.png)
+![Add Student](Images/addStudents.png)
 
-![Add New Room](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/AddNewRoom.png)
+![Add New Room](Images/AddNewRoom.png)
 
-![All Information](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/allInfo.png)
+![All Information](Images/AllInfo.png)
 
-![Room Information](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/RoomInfo.png)
+![In and Out Time](Images/inOutTime.png)
 
-![In and Out Time](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/inOutTime.png)
+![Visitor](Images/visitor_info.png)
 
-![Visitor](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/visitor.png)
-
-![Leave Application](https://raw.githubusercontent.com/ShaileshGodghase/Hostel-Management-System-/main/Images/Leave-Application.png)
+![Leave Application](Images/Leave_Application.png)
