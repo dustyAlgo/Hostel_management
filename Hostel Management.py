@@ -1,7 +1,12 @@
 from tkinter.ttk import *
 from tkinter import *
+from database_config import get_database
+from database_operations import (StudentOperations, RoomOperations, 
+                               InOutTimeOperations, VisitorOperations, 
+                               LeaveApplicationOperations, AdminOperations)
+from datetime import datetime
+
 def date():
-    from datetime import datetime
     # current date time
     now = datetime.now()
     t = now.strftime("%H:%M")
@@ -119,123 +124,61 @@ def main():
             x = "    Room No.                       |                                 Beds"
             room = Label(base, text=x, font=("Arial 15 bold"), bg="dark slate grey", fg="white")
             room.place(x=1005, y=150)
+            
             global G
-            bed1 = None
-            bed2 = None
-            bed3 = None
-            if G == 1:
-                f1 = open("room_info_boys.txt","r")
-                bed1 = "B1"
-                bed2 = "B2"
-                bed3 = "B3"
-            elif G==2:
-                f1 = open("room_info_girls.txt","r")
-                bed1 = "G1"
-                bed2 = "G2"
-                bed3 = "G3"
-            elif G==0:
-                f1 = open("room_info_others.txt","r")
-                bed1 = "O1"
-                bed2 = "O2"
-                bed3 = "O3"
-            else:
-                file_name = "room_info_boys.txt"
-                bed1 = "B1"
-                bed2 = "B2"
-                bed3 = "B3"
-            all_lines = f1.readlines()
-            count = 1
-            rooms = []
-            for i in all_lines:
-                temp1 = str(i)
-                one_line = temp1.split(',')
-                if one_line[1] == bed1 and one_line[2] == bed2 and one_line[3] == bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append(bed1)
-                    temp.append(bed2)
-                    temp.append(bed3)
-                    rooms.append(temp)
-                if one_line[1] != bed1 and one_line[2] == bed2 and one_line[3] == bed3:
-                    count = 2
-                    temp = []
-                    temp.append(one_line[0])
-                    temp.append("NA")
-                    temp.append(bed2)
-                    temp.append(bed3)
-                    rooms.append(temp)
-                if one_line[1] == bed1 and one_line[2] != bed2 and one_line[3] == bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append(bed1)
-                    temp.append("NA")
-                    temp.append(bed3)
-                    rooms.append(temp)
-                if one_line[1] == bed1 and one_line[2] == bed2 and one_line[3] != bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append(bed1)
-                    temp.append(bed2)
-                    temp.append("NA")
-                    rooms.append(temp)
-                if one_line[1] == bed1 and one_line[2] != bed2 and one_line[3] != bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append(bed1)
-                    temp.append("NA")
-                    temp.append("NA")
-                    rooms.append(temp)
-                if one_line[1] != bed1 and one_line[2] == bed2 and one_line[3] != bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append("NA")
-                    temp.append(bed2)
-                    temp.append("NA")
-                    rooms.append(temp)
-                if one_line[1] != bed1 and one_line[2] != bed2 and one_line[3] == bed3:
-                    temp = []
-                    count = 2
-                    temp.append(one_line[0])
-                    temp.append("NA")
-                    temp.append("NA")
-                    temp.append(bed3)
-                    rooms.append(temp)
-                if one_line[1] != bed1 and one_line[2] != bed2 and one_line[3] != bed3:
-                    temp = []
-                    count = 2
-                    temp.append("--")
-                    temp.append("NA")
-                    temp.append("NA")
-                    temp.append("NA")
-                    rooms.append(temp)
-            if count == 1:
-                y = "No Rooms Available"
-                x = Label(base, text=y, font=("Arial", 40), bg="dark slate grey", fg="white")
-                x.place(x=1020, y=300)
-            else:
+            # Map gender to database values
+            gender_map = {1: 'Male', 2: 'Female', 0: 'Other'}
+            gender = gender_map.get(G, 'Male')
+            
+            # Get available rooms from database
+            try:
+                rooms_data = RoomOperations.get_available_rooms(gender)
+                if not rooms_data:
+                    y = "No Rooms Available"
+                    x = Label(base, text=y, font=("Arial", 40), bg="dark slate grey", fg="white")
+                    x.place(x=1020, y=300)
+                    return
+                
                 x1co = 1150
                 y1co = 200
                 x2co = 1350
                 y2co = 200
                 flag = 1
-                for i in rooms:
-                    r_no = Label(base, text=i[0], font=("Arial", 15), bg="silver", fg="black")
+                
+                for room in rooms_data:
+                    if flag > 8:
+                        break
+                    
+                    r_no = Label(base, text=room['room_number'], font=("Arial", 15), bg="silver", fg="black")
                     r_no.place(x=x1co, y=y1co)
-                    y = i[1] + "   " + i[2] + "   " + i[3]
+                    
+                    # Create bed status string
+                    bed_status = []
+                    if not room['bed1_occupied']:
+                        bed_status.append("B1")
+                    else:
+                        bed_status.append("NA")
+                    if not room['bed2_occupied']:
+                        bed_status.append("B2")
+                    else:
+                        bed_status.append("NA")
+                    if not room['bed3_occupied']:
+                        bed_status.append("B3")
+                    else:
+                        bed_status.append("NA")
+                    
+                    y = "   ".join(bed_status)
                     r_bk_no = Label(base, text=y, font=("Arial", 15), bg="silver", fg="black")
                     r_bk_no.place(x=x2co, y=y2co)
+                    
                     y1co = y1co + 40
                     y2co = y2co + 40
-                    count = 2
-                    if flag >= 8:
-                        break
                     flag = flag + 1
-            f1.close()
+                    
+            except Exception as e:
+                error_msg = f"Error loading rooms: {str(e)}"
+                error_label = Label(base, text=error_msg, font=("Arial", 15), bg="red", fg="white")
+                error_label.place(x=1020, y=300)
 
             c1 = Canvas(base, height=2, width=600)
             c1.place(x=1000, y=550)
@@ -255,86 +198,45 @@ def main():
             r7.place(x=1350,y=610)
             def student():
                 global G
-                bed1 = None
-                bed2 = None
-                bed3 = None
-                file_name = None
-                if G == 1:
-                    file_name = "room_info_boys.txt"
-                    bed1 = "B1"
-                    bed2 = "B2"
-                    bed3 = "B3"
-                elif G == 2:
-                    file_name = "room_info_girls.txt"
-                    bed1 = "G1"
-                    bed2 = "G2"
-                    bed3 = "G3"
-                elif G == 0:
-                    file_name = "room_info_others.txt"
-                    bed1 = "O1"
-                    bed2 = "O2"
-                    bed3 = "O3"
-                else:
-                    file_name = "room_info_boys.txt"
-                    bed1 = "B1"
-                    bed2 = "B2"
-                    bed3 = "B3"
-                f1 = open("student_info.txt", "a")
-                f2 = open(file_name,"a")
-                n = str(fir_name_entry.get()) + " "
-                b = str(r4.get()).upper()
-                ln = str(last_name_entry.get()).lower()
-                f = str(fathr_name_entry.get()).lower()
-                m = str(mther_name_entry.get()).lower()
-                d = str(dob_entry.get()).lower()
-                add = str(addrs_entry.get()).lower()
-                c = str(cont_entry.get()).lower()
-                e = str(email_entry.get())
-                w = str(place_entry.get()).lower()
-                v = str(vehicle_entry.get()).lower()
-                da = date().lower()
-                rom = str(r2.get()).lower()
-                f1.write(
-                    c + "," + n + ln + "," + f + "," + m + "," + d + "," + e + "," + w + "," + v + "," + da + "," + b + "," + rom + "," + "\n")
-                f1.close()
-                fobj = open(file_name, "r")
-                fdata_ls = fobj.readlines()
-                fobj.close()
-                rdate = date()
-                fobj = open(file_name, "w")
-                if b == bed1:
-                    for oneline in fdata_ls:
-                        if oneline.startswith(rom + ",") and oneline.__contains__(","+bed1):
-                            # write date
-                            new_oneline = oneline.replace(","+bed1+",", "," + c + ",")
-                            new_oneline2 = new_oneline.replace(",NOT,", "," + rdate + ",")
-                            fobj.write(new_oneline)
-                        else:
-                            fobj.write(oneline)
-                else:
-                    if b == bed2:
-                        for oneline in fdata_ls:
-                            if oneline.startswith(rom + ",") and oneline.__contains__(","+bed2):
-                                # write date
-                                new_oneline = oneline.replace(","+bed2+"," , "," + c + ",")
-                                new_oneline2 = new_oneline.replace(",NOT," , "," + rdate + ",")
-                                fobj.write(new_oneline)
-                            else:
-                                fobj.write(oneline)
+                try:
+                    # Map gender to database values
+                    gender_map = {1: 'Male', 2: 'Female', 0: 'Other'}
+                    gender = gender_map.get(G, 'Male')
+                    
+                    # Prepare student data
+                    student_data = {
+                        'contact': str(cont_entry.get()),
+                        'first_name': str(fir_name_entry.get()),
+                        'last_name': str(last_name_entry.get()),
+                        'father_name': str(fathr_name_entry.get()),
+                        'mother_name': str(mther_name_entry.get()),
+                        'dob': str(dob_entry.get()),
+                        'email': str(email_entry.get()),
+                        'address': str(addrs_entry.get()),
+                        'vehicle': str(vehicle_entry.get()),
+                        'workplace': str(place_entry.get()),
+                        'gender': gender,
+                        'room_number': str(r2.get()),
+                        'bed_number': str(r4.get()).upper(),
+                        'registration_date': datetime.now()
+                    }
+                    
+                    # Add student to database
+                    success, message = StudentOperations.add_student(student_data)
+                    
+                    if success:
+                        l = Label(base, text="Student Added Successfully....!", font=("Arial 15 bold"), bg='silver',
+                                  fg="black")
+                        l.place(x=1150, y=650)
                     else:
-                        for oneline in fdata_ls:
-                            if oneline.startswith(rom + ",") and oneline.__contains__(","+bed3):
-                                # write date
-                                new_oneline = oneline.replace(","+bed3+"," , "," + c + ",")
-                                new_oneline2 = new_oneline.replace(",NOT," , "," + rdate + ",")
-                                fobj.write(new_oneline)
-                            else:
-                                fobj.write(oneline)
-                fobj.close()
-
-                l = Label(base, text="Student Added Successfully....!", font=("Arial 15 bold"), bg='silver',
-                          fg="black")
-                l.place(x=1150, y=650)
+                        l = Label(base, text=f"Error: {message}", font=("Arial 15 bold"), bg='red',
+                                  fg="white")
+                        l.place(x=1150, y=650)
+                        
+                except Exception as e:
+                    l = Label(base, text=f"Error: {str(e)}", font=("Arial 15 bold"), bg='red',
+                              fg="white")
+                    l.place(x=1150, y=650)
             add_student = Button(base, text="Add Student", font=("Arial 20 bold"), bg="white", fg="black" ,command=student)
             add_student.place(x=1040, y=700)
 
@@ -385,46 +287,29 @@ def main():
         b.place(x=840, y=350)
         c.place(x=950, y=350)
         def add():
-            file_name = ""
-            bed1 = bed2 = bed3 = None
-            r = (rm_n_entry.get())
-            if G==1:
-                bed1 = "B1"
-                bed2 = "B2"
-                bed3 = "B3"
-                file_name = "room_info_boys.txt"
-                f2 = open(file_name, "r")
-            if G==2:
-                bed1 = "G1"
-                bed2 = "G2"
-                bed3 = "G3"
-                file_name = "room_info_girls.txt"
-                f2 = open(file_name, "r")
-            if G==0:
-                bed1 = "O1"
-                bed2 = "O2"
-                bed3 = "O3"
-                file_name = "room_info_others.txt"
-                f2 = open(file_name, "r")
-            all_lines = f2.readlines()
-            count = 0
-            for i in all_lines:
-                temp = str(i)
-                one_line = temp.split(',')
-                if one_line[0] == r:
-                    l = Label(base, text="Room Is Already Addded....!", font=("Arial 25 bold"), bg='silver',
+            try:
+                global G
+                room_number = str(rm_n_entry.get())
+                
+                # Map gender to database values
+                gender_map = {1: 'Male', 2: 'Female', 0: 'Other'}
+                gender = gender_map.get(G, 'Male')
+                
+                # Add room to database
+                success = RoomOperations.add_room(room_number, gender)
+                
+                if success:
+                    l = Label(base, text="ROOM Successfully Added....!", font=("Arial 25 bold"), bg='silver',
                               fg="black")
                     l.place(x=650, y=600)
-                    f2.close()
-                    count = 2
-            f2.close()
-            if count != 2:
-                q = "NOT"
-                f1 = open(file_name, "a")
-                f1.write(r + "," + bed1 + "," + bed2 + "," + bed3 + "," + q + "," + "\n")
-                f1.close()
-                l = Label(base, text="ROOM Successfully Added....!", font=("Arial 25 bold"), bg='silver',
-                          fg="black")
+                else:
+                    l = Label(base, text="Room Is Already Added or Error Occurred....!", font=("Arial 25 bold"), bg='red',
+                              fg="white")
+                    l.place(x=650, y=600)
+                    
+            except Exception as e:
+                l = Label(base, text=f"Error: {str(e)}", font=("Arial 25 bold"), bg='red',
+                          fg="white")
                 l.place(x=650, y=600)
 
         ad_rm_btn = Button(base, text="Add Room", font=("Arial 20 bold"), bg="white", fg="black", command=add)
@@ -451,14 +336,23 @@ def main():
         purpose_entry.place(x=620, y=270)
 
         def save1():
-            Id = str(out_time_entry.get())
-            pur1 = str(purpose_entry.get())
-            t = date()
-            f1 = open("inouttime.txt", "a")
-            f1.write(Id + "," + pur1 + "," + t + "," + "OUTTIME" + "," + "REMARK" + "\n")
-            f1.close()
-            done = Label(base, text="Successfull...!", font=("Arial 20 bold"), bg="silver", fg="black")
-            done.place(x=1200, y=220)
+            try:
+                student_id = str(out_time_entry.get())
+                purpose = str(purpose_entry.get())
+                
+                # Log out time to database
+                success = InOutTimeOperations.log_out_time(student_id, purpose)
+                
+                if success:
+                    done = Label(base, text="Successfull...!", font=("Arial 20 bold"), bg="silver", fg="black")
+                    done.place(x=1200, y=220)
+                else:
+                    done = Label(base, text="Error logging out time...!", font=("Arial 20 bold"), bg="red", fg="white")
+                    done.place(x=1200, y=220)
+                    
+            except Exception as e:
+                done = Label(base, text=f"Error: {str(e)}", font=("Arial 20 bold"), bg="red", fg="white")
+                done.place(x=1200, y=220)
 
         save1 = Button(base, text="Save", font=("Arial 20 bold"), bg="white", fg="black", command=save1)
         save1.place(x=1050, y=220)
@@ -480,53 +374,48 @@ def main():
         ot_entry_entry.place(x=680, y=550)
 
         def search_outtime():
-            s_id = str(in_time_entry.get())
-            fobj = open("inouttime.txt", "r")
-            fdata_ls = fobj.readlines()
-            count = 1
-            for oneline in fdata_ls:
-                if oneline.startswith(s_id + ",") and oneline.__contains__(",OUTTIME,"):
-                    # write date
-                    count = 2
-                    y = oneline.split(",")
-                    tv = StringVar()
-                    tv.set(y[2] + "     " + y[3])
-                    ot = Entry(base, width=20, textvariable=tv, font=("Arial 20 bold"))
-                    ot.place(x=680, y=550)
-                    break
-            fobj.close()
-            if count == 1:
+            try:
+                student_id = str(in_time_entry.get())
+                
+                # Get out time entry from database
+                out_time_entry = InOutTimeOperations.get_out_time_entry(student_id)
+                
                 tv = StringVar()
-                tv.set("Invalid Id")
+                if out_time_entry:
+                    # Format the out time for display
+                    out_time_str = out_time_entry['out_time'].strftime("%H:%M,%Y-%m-%d")
+                    tv.set(out_time_str + "     OUTTIME")
+                else:
+                    tv.set("Invalid Id")
+                
+                ot = Entry(base, width=20, textvariable=tv, font=("Arial 20 bold"))
+                ot.place(x=680, y=550)
+                
+            except Exception as e:
+                tv = StringVar()
+                tv.set(f"Error: {str(e)}")
                 ot = Entry(base, width=20, textvariable=tv, font=("Arial 20 bold"))
                 ot.place(x=680, y=550)
 
         def save2():
-            sel_opt = str(r_sel.get())
-            s_id = str(in_time_entry.get())
-            fobj = open("inouttime.txt", "r")
-            fdata_ls = fobj.readlines()
-            fobj.close()
-            rdate = date()
-            count = 1
-            fobj = open("inouttime.txt", "w")
-            for oneline in fdata_ls:
-                if oneline.startswith(s_id + ",") and oneline.__contains__(",OUTTIME,"):
-                    # write date
-                    new_oneline = oneline.replace(",OUTTIME,", "," + rdate + ",")
-                    new_oneline2 = new_oneline.replace(",REMARK", "," + sel_opt + ",")
-                    fobj.write(new_oneline2)
-                    count = 2
+            try:
+                remark = str(r_sel.get())
+                student_id = str(in_time_entry.get())
+                
+                # Log in time to database
+                success = InOutTimeOperations.log_in_time(student_id, remark)
+                
+                if success:
+                    done = Label(base, text="Successful...!", font=("Arial 20 bold"), bg="silver", fg="black")
+                    done.place(x=700, y=720)
                 else:
-                    fobj.write(oneline)
-            if count == 2:
-                done = Label(base, text="Successful...!", font=("Arial 20 bold"), bg="silver", fg="black")
-                done.place(x=700, y=720)
-            if count == 1:
-                done = Label(base, text="Please Give Correct Information", font=("Arial 20 bold"), bg="silver",
-                             fg="black")
+                    done = Label(base, text="Please Give Correct Information", font=("Arial 20 bold"), bg="red",
+                                 fg="white")
+                    done.place(x=600, y=720)
+                    
+            except Exception as e:
+                done = Label(base, text=f"Error: {str(e)}", font=("Arial 20 bold"), bg="red", fg="white")
                 done.place(x=600, y=720)
-            fobj.close()
 
         sear_ot = Button(base, text="Search Outtime", font=("Arial 18 bold"), bg="white", command=search_outtime)
         sear_ot.place(x=1050, y=520)
@@ -579,43 +468,63 @@ def main():
                 st_name_entry.place(x=1250, y=200)
 
             def add_visitor():
-                vn = str(v_name_entry.get())
-                vcon = str(v_contact_entry.get())
-                vr = str(v_reason_entry.get())
-                vadd = str(v_address_entry.get())
-                sn = str(st_name_entry.get())
-                d = str(date())
-                fp = open("visitor_info.txt", "a")
-                fp.write(sn + "," + vn + "," + vcon + "," + vr + "," + vadd + "," + d + "," + "\n")
-                fp.close()
-                s = Label(base, text="Successfull...!", font=("Arial 20 bold"), bg="dark slate grey", fg="white",
-                          padx=100)
-                s.place(x=1100, y=700)
+                try:
+                    visitor_data = {
+                        'student_id': student_id,
+                        'visitor_name': str(v_name_entry.get()),
+                        'visitor_contact': str(v_contact_entry.get()),
+                        'reason': str(v_reason_entry.get()),
+                        'visitor_address': str(v_address_entry.get()),
+                        'visit_date': datetime.now()
+                    }
+                    
+                    success = VisitorOperations.add_visitor(visitor_data)
+                    
+                    if success:
+                        s = Label(base, text="Successfull...!", font=("Arial 20 bold"), bg="dark slate grey", fg="white",
+                                  padx=100)
+                        s.place(x=1100, y=700)
+                    else:
+                        s = Label(base, text="Error adding visitor...!", font=("Arial 20 bold"), bg="red", fg="white",
+                                  padx=100)
+                        s.place(x=1100, y=700)
+                        
+                except Exception as e:
+                    s = Label(base, text=f"Error: {str(e)}", font=("Arial 20 bold"), bg="red", fg="white",
+                              padx=100)
+                    s.place(x=1100, y=700)
 
             reset_btn = Button(base, text="Reset", font=("Arial 20 bold"), command=reset)
             reset_btn.place(x=1340, y=280)
-            s_n = str(st_name_entry.get())
-            fobj = open("student_info.txt", "r")
-            fdata_ls = fobj.readlines()
-            count = 1
-            for oneline in fdata_ls:
-                if oneline.__contains__("," + s_n + ","):
-                    # write date
-                    count = 2
-                    y = oneline.split(",")
+            
+            try:
+                student_name = str(st_name_entry.get())
+                
+                # Search student by name in database
+                students = StudentOperations.search_student_by_name(student_name)
+                
+                if students:
+                    student = students[0]  # Take first match
+                    student_id = student['student_id']
+                    room_number = student.get('room_number', 'N/A')
+                    
                     tv = StringVar()
-                    tv.set(y[11])
+                    tv.set(room_number)
                     ot_name = Label(base, text="Room No.", font=("Arial 20 bold"), bg="silver")
                     ot_name.place(x=1020, y=400)
                     ot = Entry(base, width=15, textvariable=tv, font=("Arial 20 bold"), justify=CENTER)
                     ot.place(x=1250, y=400)
                     add_btn = Button(base, text="Add Visitor", font=("Arial 20 bold"), command=add_visitor)
                     add_btn.place(x=1100, y=500)
-                    break
-            fobj.close()
-            if count == 1:
+                else:
+                    tv = StringVar()
+                    tv.set("Invalid Name")
+                    ot = Entry(base, width=15, textvariable=tv, font=("Arial 20 bold"), fg="red")
+                    ot.place(x=1250, y=200)
+                    
+            except Exception as e:
                 tv = StringVar()
-                tv.set("Invalid Name")
+                tv.set(f"Error: {str(e)}")
                 ot = Entry(base, width=15, textvariable=tv, font=("Arial 20 bold"), fg="red")
                 ot.place(x=1250, y=200)
 
@@ -641,41 +550,37 @@ def main():
             h2 = Label(base, text=h, font=("Arial 20 bold"), bg="dark orange", fg="white")
             h2.place(x=723, y=150)
 
-            students = []
-            f1 = open("student_info.txt", "r")
-            all_lines = f1.readlines()
-            for i in all_lines:
-                temp = str(i)
-                one_line = temp.split(',')
-                t = []
-                t.append(one_line[11])
-                t.append(one_line[1])
-                t.append(one_line[0])
-                t.append(one_line[6])
-                students.append(t)
-            x1co = 800
-            y1co = 200
-            x2co = 900
-            x3co = 1160
-            x4co = 1380
-            flag = 1
+            try:
+                # Get all students from database
+                students = StudentOperations.get_all_students()
+                
+                x1co = 800
+                y1co = 200
+                x2co = 900
+                x3co = 1160
+                x4co = 1380
+                flag = 1
 
-            for i in students:
-                y = i
-                c = 0
-                while c <= 2:
-                    label = Label(base, text=y[0], font=("Arial 15 bold"), bg="silver", fg="black")
+                for student in students:
+                    if flag > 8:
+                        break
+                    
+                    # Display student information
+                    label = Label(base, text=student.get('room_number', 'N/A'), font=("Arial 15 bold"), bg="silver", fg="black")
                     label.place(x=x1co, y=y1co)
-                    label2 = Label(base, text=y[1], font=("Arial 15 bold"), bg="silver", fg='black')
+                    label2 = Label(base, text=f"{student['first_name']} {student['last_name']}", font=("Arial 15 bold"), bg="silver", fg='black')
                     label2.place(x=x2co, y=y1co)
-                    label3 = Label(base, text=y[2], font=('Arial 15 bold'), bg="silver", fg='black')
+                    label3 = Label(base, text=student['student_id'], font=('Arial 15 bold'), bg="silver", fg='black')
                     label3.place(x=x3co, y=y1co)
-                    label4 = Label(base, text=y[3], font=("Arial 15 bold"), bg="silver", fg="black")
+                    label4 = Label(base, text=student['workplace_college'], font=("Arial 15 bold"), bg="silver", fg="black")
                     label4.place(x=x4co, y=y1co)
-                    c = c + 1
-                y1co = y1co + 50
-                if flag > 8:
-                    break
+                    
+                    y1co = y1co + 50
+                    flag = flag + 1
+                    
+            except Exception as e:
+                error_label = Label(base, text=f"Error loading students: {str(e)}", font=("Arial 15 bold"), bg="red", fg="white")
+                error_label.place(x=800, y=200)
 
         def room_wise():
             canvas = Canvas(base, bg='silver', height=675, width=810)
@@ -687,50 +592,52 @@ def main():
             l1_entry.focus()
 
             def search():
-                r_no = str(l1_entry.get())
-                f1 = open("student_info.txt", "r")
-                all_lines = f1.readlines()
-                r_info = []
-                for i in all_lines:
-                    temp = str(i)
-                    one_line = temp.split(',')
-                    if one_line[11] == r_no:
-                        temp = []
-                        temp.append(one_line[10])
-                        temp.append(one_line[1])
-                        temp.append(one_line[0])
-                        temp.append(one_line[6])
-                        r_info.append(temp)
-                h1 = Label(base, text="Information Of Students", font=("Arial 20 bold"), bg="dark slate grey",
-                           fg="white", padx=270, pady=5)
-                h1.place(x=720, y=250)
+                try:
+                    room_number = str(l1_entry.get())
+                    
+                    # Get students by room number from database
+                    students = StudentOperations.get_students_by_room(room_number)
+                    
+                    h1 = Label(base, text="Information Of Students", font=("Arial 20 bold"), bg="dark slate grey",
+                               fg="white", padx=270, pady=5)
+                    h1.place(x=720, y=250)
 
-                h = "Bed No.              Name                 Contact                Workplace"
-                h2 = Label(base, text=h, font=("Arial 20 bold"), bg="dark orange", fg="white")
-                h2.place(x=723, y=300)
-                x1co = 780
-                y1co = 400
-                x2co = 900
-                x3co = 1160
-                x4co = 1380
-                flag = 1
+                    h = "Bed No.              Name                 Contact                Workplace"
+                    h2 = Label(base, text=h, font=("Arial 20 bold"), bg="dark orange", fg="white")
+                    h2.place(x=723, y=300)
+                    
+                    if not students:
+                        no_students = Label(base, text="No students found in this room", font=("Arial 15 bold"), bg="silver", fg="black")
+                        no_students.place(x=800, y=400)
+                        return
+                    
+                    x1co = 780
+                    y1co = 400
+                    x2co = 900
+                    x3co = 1160
+                    x4co = 1380
+                    flag = 1
 
-                for i in r_info:
-                    y = i
-                    c = 0
-                    while c <= 2:
-                        label = Label(base, text=y[0], font=("Arial 15 bold"), bg="silver", fg="black")
+                    for student in students:
+                        if flag > 2:
+                            break
+                        
+                        # Display student information
+                        label = Label(base, text=student['bed_number'], font=("Arial 15 bold"), bg="silver", fg="black")
                         label.place(x=x1co, y=y1co)
-                        label2 = Label(base, text=y[1], font=("Arial 15 bold"), bg="silver", fg='black')
+                        label2 = Label(base, text=f"{student['first_name']} {student['last_name']}", font=("Arial 15 bold"), bg="silver", fg='black')
                         label2.place(x=x2co, y=y1co)
-                        label3 = Label(base, text=y[2], font=('Arial 15 bold'), bg="silver", fg='black')
+                        label3 = Label(base, text=student['student_id'], font=('Arial 15 bold'), bg="silver", fg='black')
                         label3.place(x=x3co, y=y1co)
-                        label4 = Label(base, text=y[3], font=("Arial 15 bold"), bg="silver", fg="black")
+                        label4 = Label(base, text=student['workplace_college'], font=("Arial 15 bold"), bg="silver", fg="black")
                         label4.place(x=x4co, y=y1co)
-                        c = c + 1
-                    y1co = y1co + 100
-                    if flag > 2:
-                        break
+                        
+                        y1co = y1co + 100
+                        flag = flag + 1
+                        
+                except Exception as e:
+                    error_label = Label(base, text=f"Error loading room info: {str(e)}", font=("Arial 15 bold"), bg="red", fg="white")
+                    error_label.place(x=800, y=400)
 
             search_btn = Button(base, text="Search", font=("Arial 20 bold"), command=search)
             search_btn.place(x=1200, y=140)
@@ -786,18 +693,29 @@ def main():
         date_entry.place(x=700, y=500)
 
         def leave_info():
-            i = str(id_entry.get())
-            n = str(n_entry.get())
-            r = str(r_entry.get())
-            m = str(m_entry.get())
-            reas = str(reason_entry.get())
-            rdate = str(date_entry.get())
-            current_date = date()
-            fopen = open("leave_applications.txt", "a")
-            fopen.write(i + "," + n + "," + r + "," + m + "," + reas + "," + current_date + "," + rdate + "," + "\n")
-            fopen.close()
-            success = Label(base, text="Submit Successfully..!", font=("Arial 20 bold"), fg="green", bg="white")
-            success.place(x=700, y=700)
+            try:
+                application_data = {
+                    'student_id': str(id_entry.get()),
+                    'student_name': str(n_entry.get()),
+                    'room_number': str(r_entry.get()),
+                    'mobile_number': str(m_entry.get()),
+                    'reason': str(reason_entry.get()),
+                    'application_date': datetime.now(),
+                    'return_date': str(date_entry.get())
+                }
+                
+                success = LeaveApplicationOperations.submit_leave_application(application_data)
+                
+                if success:
+                    success_label = Label(base, text="Submit Successfully..!", font=("Arial 20 bold"), fg="green", bg="white")
+                    success_label.place(x=700, y=700)
+                else:
+                    error_label = Label(base, text="Error submitting application..!", font=("Arial 20 bold"), fg="red", bg="white")
+                    error_label.place(x=700, y=700)
+                    
+            except Exception as e:
+                error_label = Label(base, text=f"Error: {str(e)}", font=("Arial 20 bold"), fg="red", bg="white")
+                error_label.place(x=700, y=700)
 
         submit = Button(base, text="Submit", font=("Arial 20 bold"), fg="black", command=leave_info)
         submit.place(x=700, y=600)
@@ -835,15 +753,25 @@ pass_entry = Entry(base, width=17, font="Arial 20")
 pass_entry.place(x=650, y=355)
 
 def login():
-    id = str(user_entry.get())
-    key = str(pass_entry.get())
-    if id == "mrityunjay" and key == "12345670":
-        main()
-    else:
+    try:
+        username = str(user_entry.get())
+        password = str(pass_entry.get())
+        
+        # Verify login using database
+        if AdminOperations.verify_login(username, password):
+            main()
+        else:
+            user_entry.focus()
+            user_entry.delete(0, END)
+            pass_entry.delete(0, END)
+            fail = Label(base, text="Wrong Username Or Password...!", font=("Arial 30 bold"), bg="silver", fg="red")
+            fail.place(x=450, y=540)
+            
+    except Exception as e:
         user_entry.focus()
         user_entry.delete(0, END)
         pass_entry.delete(0, END)
-        fail = Label(base, text="Wrong Username Or Password...!", font=("Arial 30 bold"), bg="silver", fg="red")
+        fail = Label(base, text=f"Login Error: {str(e)}", font=("Arial 30 bold"), bg="silver", fg="red")
         fail.place(x=450, y=540)
 
 

@@ -1,33 +1,41 @@
 ## Hostel Management System
-A simple Hostel Management System built with Python Tkinter and plain text file storage (no database). It manages students, rooms, visitors, in/out time logs, and leave applications.
+A comprehensive Hostel Management System built with Python Tkinter and MySQL database. It manages students, rooms, visitors, in/out time logs, and leave applications with robust data persistence.
 
 ### Requirements
 - Python 3.8+
+- MySQL Server 5.7+ or 8.0+
 - Tkinter (bundled with standard Python on Windows/macOS; on some Linux distros install via your package manager)
+- Required Python packages (see requirements.txt)
 
 ### Project Structure
 - `Hostel Management.py`: Main GUI application
+- `database_config.py`: Database connection configuration
+- `database_operations.py`: Database operations and queries
+- `database_schema.sql`: MySQL database schema
+- `setup_database.py`: Database initialization script
 - `Images/`: Screenshots used in this README
-- Text data files created at runtime (see below)
 
 ### Quick Setup & Run
-1. **Automatic Setup** (Recommended):
+1. **Install Dependencies**:
    ```bash
-   python setup_files.py
+   pip install -r requirements.txt
    ```
-   This creates all required data files automatically.
 
-2. **Manual Setup** (Alternative):
-   Create these empty text files in the project root:
-   - `room_info_boys.txt`
-   - `room_info_girls.txt`
-   - `room_info_others.txt`
-   - `student_info.txt`
-   - `inouttime.txt`
-   - `visitor_info.txt`
-   - `leave_applications.txt`
+2. **Setup MySQL Database**:
+   - Install MySQL Server on your system
+   - Create a database user (or use root)
+   - Update database credentials in `database_config.py` if needed
+   - Run the database schema:
+   ```bash
+   mysql -u root -p < database_schema.sql
+   ```
 
-3. **Start the app**:
+3. **Test Database Connection**:
+   ```bash
+   python database_config.py
+   ```
+
+4. **Start the app**:
    - Windows: Right‑click `Hostel Management.py` → Open with Python
    - Or from terminal: `python "Hostel Management.py"`
 
@@ -57,21 +65,27 @@ Optional (slightly safer): move them to module‑level constants or read from an
 - View Information: List all students or search by room number
 - Leave Application: Submit and store leave requests
 
-### Data Storage (Text Files)
-- Rooms per gender: `room_info_boys.txt`, `room_info_girls.txt`, `room_info_others.txt`
-  - Format per line (after adding rooms): `roomNo,B1,B2,B3,NOT,`
-  - When a bed is allocated, the placeholder (e.g., `B1`) is replaced with the student contact/ID and the trailing `NOT` is updated with the date
-- Students: `student_info.txt`
-- In/Out logs: `inouttime.txt`
-- Visitors: `visitor_info.txt`
-- Leave applications: `leave_applications.txt`
+### Database Schema
+The system uses MySQL with the following main tables:
+- **rooms**: Room information with bed allocation status
+- **students**: Student details and room assignments
+- **inouttime**: In/out time logging with remarks
+- **visitors**: Visitor information linked to students
+- **leave_applications**: Leave application submissions
+- **admin_users**: Admin authentication (currently using hardcoded credentials)
 
-Note: The app opens room files in read mode in several places; ensure the files exist before running. Empty files are fine.
+### Database Features
+- **ACID Compliance**: All operations are atomic and consistent
+- **Data Integrity**: Foreign key constraints ensure data relationships
+- **Scalability**: Can handle large numbers of students and records
+- **Backup & Recovery**: Standard MySQL backup procedures apply
+- **Performance**: Indexed columns for fast queries
 
 ### Tips
 - Create rooms first so that beds are available to assign when adding students
 - The contact number acts as the Hostel ID during student registration
-- If you see “No Rooms Available,” add rooms for the selected gender
+- If you see "No Rooms Available," add rooms for the selected gender
+- Database connection errors will be displayed in the UI for troubleshooting
 
 ### Screenshots
 ![Login](Images/login_info.png)

@@ -1,0 +1,12 @@
+# Hostel Management System - Database Requirements
+# Install with: pip install -r requirements.txt
+
+# MySQL database connector
+mysql-connector-python==8.2.0
+
+# Optional: For better password hashing (if you want to improve security)
+bcrypt==4.1.2
+
+# Optional: For environment variable management
+python-dotenv==1.0.0
+
